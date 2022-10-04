@@ -7,7 +7,7 @@ class WebSmoothScroll extends StatefulWidget {
   /// Scroll Controller for controlling the scroll behaviour manually
   /// so we can animate to next scrolled position and avoid the jerky movement
   /// of default scroll
-  final ScrollController controller;
+  final ScrollController? controller;
 
   /// Child scrollable widget.
   final Widget child;
@@ -27,7 +27,7 @@ class WebSmoothScroll extends StatefulWidget {
 
   const WebSmoothScroll({
     Key? key,
-    required this.controller,
+    this.controller,
     required this.child,
     this.scrollOffset = defaultScrollOffset,
     this.animationDuration = defaultAnimationDuration,
@@ -48,15 +48,19 @@ class _WebSmoothScrollState extends State<WebSmoothScroll> {
 
     // Adding listener so if value of listener is changed outside our class
     // it gets updated here to avoid unwanted scrolling behavior
-    widget.controller.addListener(scrollListener);
+    if (widget.controller != null) {
+      widget.controller!.addListener(scrollListener);
+    }
   }
 
   @override
   void didUpdateWidget(covariant WebSmoothScroll oldWidget) {
     // In case if window is resized the widget gets initialized again without listener
     // adding it back again to resolve unwanted issues
-    widget.controller.removeListener(scrollListener);
-    widget.controller.addListener(scrollListener);
+    if (widget.controller != null) {
+      widget.controller!.removeListener(scrollListener);
+      widget.controller!.addListener(scrollListener);
+    }
     // if (widget.controller.hasListeners == false) {
     //   widget.controller.addListener(scrollListener);
     // }
@@ -66,7 +70,7 @@ class _WebSmoothScrollState extends State<WebSmoothScroll> {
   @override
   Widget build(BuildContext context) {
     return Listener(
-      onPointerSignal: onPointerSignal,
+      onPointerSignal: widget.controller != null ? onPointerSignal : null,
       child: widget.child,
     );
   }
@@ -74,7 +78,7 @@ class _WebSmoothScrollState extends State<WebSmoothScroll> {
   /// Member Functions
   ///
   ///
-  void scrollListener() => _scroll = widget.controller.offset;
+  void scrollListener() => _scroll = widget.controller!.offset;
 
   void onPointerSignal(PointerSignalEvent event) {
     // Initializing default animation duration length in MS
@@ -95,8 +99,8 @@ class _WebSmoothScrollState extends State<WebSmoothScroll> {
       }
 
       // Checking if scroll has reached to bottom of the screen
-      if (_scroll > widget.controller.position.maxScrollExtent) {
-        _scroll = widget.controller.position.maxScrollExtent;
+      if (_scroll > widget.controller!.position.maxScrollExtent) {
+        _scroll = widget.controller!.position.maxScrollExtent;
         millis = widget.animationDuration ~/ 4;
       }
 
@@ -108,7 +112,7 @@ class _WebSmoothScrollState extends State<WebSmoothScroll> {
       }
 
       // Animating to the calculated scroll position
-      widget.controller.animateTo(
+      widget.controller!.animateTo(
         _scroll,
         duration: Duration(milliseconds: millis),
         curve: widget.curve,
